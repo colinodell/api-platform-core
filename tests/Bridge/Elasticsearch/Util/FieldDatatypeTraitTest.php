@@ -79,10 +79,12 @@ class FieldDatatypeTraitTest extends TestCase
     {
         $fooType = new Type(Type::BUILTIN_TYPE_OBJECT, false, Foo::class);
         $barType = new Type(Type::BUILTIN_TYPE_ARRAY, false, Foo::class, true, new Type(Type::BUILTIN_TYPE_INT), new Type(Type::BUILTIN_TYPE_OBJECT, false, Foo::class));
+        $bazType = new Type(Type::BUILTIN_TYPE_STRING, false, Foo::class);
 
         $propertyMetadataFactoryProphecy = $this->prophesize(PropertyMetadataFactoryInterface::class);
         $propertyMetadataFactoryProphecy->create(Foo::class, 'foo')->willReturn(new PropertyMetadata($fooType))->shouldBeCalled();
         $propertyMetadataFactoryProphecy->create(Foo::class, 'bar')->willReturn(new PropertyMetadata($barType))->shouldBeCalled();
+        $propertyMetadataFactoryProphecy->create(Foo::class, 'baz')->willReturn(new PropertyMetadata($bazType));
 
         $resourceClassResolverProphecy = $this->prophesize(ResourceClassResolverInterface::class);
         $resourceClassResolverProphecy->isResourceClass(Foo::class)->willReturn(true)->shouldBeCalled();
