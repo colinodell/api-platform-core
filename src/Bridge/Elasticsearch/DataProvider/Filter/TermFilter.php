@@ -36,8 +36,15 @@ final class TermFilter extends AbstractSearchFilter
             $termQuery = ['terms' => [$property => $values]];
         }
 
-        if (null !== $nestedPath) {
-            $termQuery = ['nested' => ['path' => $nestedPath, 'query' => $termQuery]];
+        if (null === $nestedPath) {
+            return $termQuery;
+        }
+
+        $nestedPath = explode('.', $nestedPath);
+
+        while ([] !== $nestedPath) {
+            $termQuery = ['nested' => ['path' => implode('.', $nestedPath), 'query' => $termQuery]];
+            array_pop($nestedPath);
         }
 
         return $termQuery;

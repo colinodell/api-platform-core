@@ -37,8 +37,15 @@ final class MatchFilter extends AbstractSearchFilter
 
         $matchQuery = isset($matches[1]) ? ['bool' => ['should' => $matches]] : $matches[0];
 
-        if (null !== $nestedPath) {
-            $matchQuery = ['nested' => ['path' => $nestedPath, 'query' => $matchQuery]];
+        if (null === $nestedPath) {
+            return $matchQuery;
+        }
+
+        $nestedPath = explode('.', $nestedPath);
+
+        while ([] !== $nestedPath) {
+            $matchQuery = ['nested' => ['path' => implode('.', $nestedPath), 'query' => $matchQuery]];
+            array_pop($nestedPath);
         }
 
         return $matchQuery;
