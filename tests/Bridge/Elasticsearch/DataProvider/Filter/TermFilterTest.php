@@ -93,9 +93,45 @@ class TermFilterTest extends TestCase
         );
     }
 
-    public function testApplyWithNestedProperty()
+    public function testApplyWithNestedArrayProperty()
     {
         $fooType = new Type(Type::BUILTIN_TYPE_ARRAY, false, Foo::class, true, new Type(Type::BUILTIN_TYPE_INT), new Type(Type::BUILTIN_TYPE_OBJECT, false, Foo::class));
+        $barType = new Type(Type::BUILTIN_TYPE_STRING);
+
+        $propertyMetadataFactoryProphecy = $this->prophesize(PropertyMetadataFactoryInterface::class);
+        $propertyMetadataFactoryProphecy->create(Foo::class, 'foo')->willReturn(new PropertyMetadata($fooType))->shouldBeCalled();
+        $propertyMetadataFactoryProphecy->create(Foo::class, 'bar')->willReturn(new PropertyMetadata($barType))->shouldBeCalled();
+
+        $resourceClassResolverProphecy = $this->prophesize(ResourceClassResolverInterface::class);
+        $resourceClassResolverProphecy->isResourceClass(Foo::class)->willReturn(true)->shouldBeCalled();
+
+        $identifierExtractorProphecy = $this->prophesize(IdentifierExtractorInterface::class);
+        $identifierExtractorProphecy->getIdentifierFromResourceClass(Foo::class)->willReturn('id')->shouldBeCalled();
+
+        $nameConverterProphecy = $this->prophesize(NameConverterInterface::class);
+        $nameConverterProphecy->normalize('foo.bar', Foo::class, null, Argument::type('array'))->willReturn('foo.bar')->shouldBeCalled();
+        $nameConverterProphecy->normalize('foo', Foo::class, null, Argument::type('array'))->willReturn('foo')->shouldBeCalled();
+
+        $termFilter = new TermFilter(
+            $this->prophesize(PropertyNameCollectionFactoryInterface::class)->reveal(),
+            $propertyMetadataFactoryProphecy->reveal(),
+            $resourceClassResolverProphecy->reveal(),
+            $identifierExtractorProphecy->reveal(),
+            $this->prophesize(IriConverterInterface::class)->reveal(),
+            $this->prophesize(PropertyAccessorInterface::class)->reveal(),
+            $nameConverterProphecy->reveal(),
+            ['foo.bar' => null]
+        );
+
+        self::assertSame(
+            ['bool' => ['must' => [['nested' => ['path' => 'foo', 'query' => ['term' => ['foo.bar' => 'Krupicka']]]]]]],
+            $termFilter->apply([], Foo::class, null, ['filters' => ['foo.bar' => 'Krupicka']])
+        );
+    }
+
+    public function testApplyWithNestedObjectProperty()
+    {
+        $fooType = new Type(Type::BUILTIN_TYPE_OBJECT, false, Foo::class);
         $barType = new Type(Type::BUILTIN_TYPE_STRING);
 
         $propertyMetadataFactoryProphecy = $this->prophesize(PropertyMetadataFactoryInterface::class);
