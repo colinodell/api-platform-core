@@ -36,6 +36,16 @@ class FieldDatatypeTraitTest extends TestCase
         self::assertNull($fieldDatatype->getNestedFieldPath(Foo::class, 'baz'));
     }
 
+    public function testGetNestedFieldInNestedCollection()
+    {
+        $fieldDatatype = $this->getValidFieldDatatype();
+
+        self::assertSame('bar.foo', $fieldDatatype->getNestedFieldPath(Foo::class, 'bar.foo.baz'));
+        self::assertSame('bar', $fieldDatatype->getNestedFieldPath(Foo::class, 'bar.foo'));
+        self::assertNull($fieldDatatype->getNestedFieldPath(Foo::class, 'baz'));
+    }
+
+
     public function testGetNestedFieldPathWithPropertyNotFound()
     {
         $propertyMetadataFactoryProphecy = $this->prophesize(PropertyMetadataFactoryInterface::class);
